@@ -5,6 +5,7 @@ import { RectButton } from 'react-native-gesture-handler';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import api from '../../services/api';
+import Axios from 'axios';
 
 interface OrphanageDataRouteParams {
   position: {
@@ -20,6 +21,8 @@ export default function OrphanageData() {
   const [opening_hours, setOpeningHours] = useState('');
   const [open_on_weekends, setOpenOnWeekends] = useState(true);
   const [images, setImages] = useState<string[]>([]);
+
+  const [addressMap, setAddressMap] = useState('');
 
   const navigation = useNavigation();
   const route = useRoute();
@@ -75,9 +78,20 @@ export default function OrphanageData() {
     setImages([...images, image]);
   }
 
+  const { latitude, longitude } = params.position;
+  
+  Axios.get(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`).then(response => {      
+    console.log(response.data.address.road)
+    const roadName = response.data.address.road;
+    setAddressMap(roadName);
+  });
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ padding: 24 }}>
       <Text style={styles.title}>Dados</Text>
+
+      <Text style={styles.label}>Endereço Selecionado</Text>
+      <Text style={styles.addressMap}>{addressMap}</Text>
 
       <Text style={styles.label}>Nome</Text>
       <TextInput
@@ -170,6 +184,10 @@ const styles = StyleSheet.create({
     color: '#8fa7b3',
     fontFamily: 'Nunito_600SemiBold',
     marginBottom: 8,
+  },
+
+  addressMap: {
+    marginBottom: 16 
   },
 
   comment: {
